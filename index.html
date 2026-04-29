@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Life Movie AI</title>
+  <style>
+    :root {
+      --bg: #05070d;
+      --bg-deep: #02030a;
+      --panel: rgba(255, 255, 255, 0.08);
+      --panel-strong: rgba(255, 255, 255, 0.13);
+      --line: rgba(255, 255, 255, 0.16);
+      --text: #f8fbff;
+      --muted: #b8c3d8;
+      --gold: #f7c969;
+      --gold-dark: #a86f20;
+      --blue: #102f66;
+      --blue-soft: #6da7ff;
+      --danger: #ff7f9a;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+      --radius: 8px;
+      --max-width: 1180px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 18% 12%, rgba(55, 112, 205, 0.28), transparent 30rem),
+        radial-gradient(circle at 82% 16%, rgba(247, 201, 105, 0.16), transparent 27rem),
+        radial-gradient(circle at 52% 92%, rgba(39, 72, 126, 0.26), transparent 34rem),
+        linear-gradient(145deg, var(--bg-deep), var(--bg) 48%, #071325);
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    /* Fine grain and tiny star field for a cinematic surface. */
+    body::before {
+      opacity: 0.32;
+      background-image:
+        radial-gradient(circle, rgba(255, 255, 255, 0.7) 0 1px, transparent 1.5px),
+        radial-gradient(circle, rgba(247, 201, 105, 0.55) 0 1px, transparent 1.5px);
+      background-position: 0 0, 44px 31px;
+      background-size: 122px 122px, 174px 174px;
+      mask-image: linear-gradient(to bottom, black, transparent 78%);
+    }
+
+    body::after {
+      opacity: 0.12;
+      background:
+        repeating-linear-gradient(90deg, transparent 0 3px, rgba(255, 255, 255, 0.11) 3px 4px),
+        repeating-linear-gradient(0deg, transparent 0 18px, rgba(255, 255, 255, 0.06) 18px 19px);
+      mix-blend-mode: screen;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+    }
+
+    .page-shell {
+      position: relative;
+      min-height: 100vh;
+      isolation: isolate;
+    }
+
+    .orb {
+      position: fixed;
+      width: 22rem;
+      height: 22rem;
+      border-radius: 999px;
+      filter: blur(64px);
+      opacity: 0.26;
+      pointer-events: none;
+      z-index: -1;
+      animation: drift 12s ease-in-out infinite alternate;
+    }
+
+    .orb.one {
+      top: 12vh;
+      left: -8rem;
+      background: #2257b8;
+    }
+
+    .orb.two {
+      right: -9rem;
+      bottom: 8vh;
+      background: #d49334;
+      animation-delay: -5s;
+    }
+
+    @keyframes drift {
+      from {
+        transform: translate3d(0, 0, 0) scale(1);
+      }
+
+      to {
+        transform: translate3d(2rem, -1.2rem, 0) scale(1.08);
+      }
+    }
+
+    .site-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(3, 7, 17, 0.68);
+      backdrop-filter: blur(18px);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: min(var(--max-width), calc(100% - 2rem));
+      min-height: 72px;
+      margin: 0 auto;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 2.35rem;
+      height: 2.35rem;
+      color: #120d03;
+      font-weight: 900;
+      background: linear-gradient(135deg, #fff4ca, var(--gold) 52%, #c88424);
+      border-radius: 8px;
+      box-shadow: 0 0 28px rgba(247, 201, 105, 0.28);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      transition: color 180ms ease;
+    }
+
+    .nav-links a:hover,
+    .nav-links a:focus-visible {
+      color: var(--text);
+    }
+
+    .section {
+      width: min(var(--max-width), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    .hero {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(280px, 0.72fr);
+      align-items: center;
+      gap: clamp(2rem, 6vw, 5rem);
+      min-height: 92vh;
+      padding: 8.2rem 0 2.5rem;
+    }
+
+    .hero-copy {
+      animation: rise 700ms ease both;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      width: fit-content;
+      margin-bottom: 1rem;
+      padding: 0.48rem 0.72rem;
+      color: #ffdf96;
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: rgba(247, 201, 105, 0.09);
+      border: 1px solid rgba(247, 201, 105, 0.26);
+      border-radius: 999px;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 0.48rem;
+      height: 0.48rem;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 18px rgba(247, 201, 105, 0.9);
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      max-width: 11ch;
+      margin-bottom: 1.2rem;
+      font-size: clamp(3.55rem, 9vw, 7.7rem);
+      line-height: 0.92;
+      letter-spacing: 0;
+    }
+
+    .gold-text {
+      color: transparent;
+      background: linear-gradient(135deg, #fff8d7 6%, var(--gold) 42%, #fff 84%);
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+
+    .hero-subtitle {
+      max-width: 42rem;
+      margin-bottom: 2rem;
+      color: var(--muted);
+      font-size: clamp(1.08rem, 2.4vw, 1.34rem);
+      line-height: 1.65;
+    }
+
+    .hero-actions,
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .button,
+    .ghost-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 3.1rem;
+      padding: 0.92rem 1.25rem;
+      border-radius: var(--radius);
+      text-decoration: none;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
+    }
+
+    .button {
+      color: #171004;
+      background: linear-gradient(135deg, #fff1b8, var(--gold) 52%, #d99128);
+      box-shadow: 0 16px 40px rgba(247, 201, 105, 0.24);
+    }
+
+    .button:hover,
+    .button:focus-visible,
+    .ghost-button:hover,
+    .ghost-button:focus-visible {
+      transform: translateY(-2px);
+    }
+
+    .button:focus-visible,
+    .ghost-button:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible,
+    select:focus-visible {
+      outline: 2px solid rgba(247, 201, 105, 0.9);
+      outline-offset: 3px;
+    }
+
+    .ghost-button {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+    .movie-card {
+      position: relative;
+      min-height: 31rem;
+      padding: 1rem;
+      background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.035)),
+        radial-gradient(circle at 50% 0, rgba(247, 201, 105, 0.23), transparent 18rem);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(22px);
+      animation: floatIn 900ms 150ms ease both;
+    }
+
+    .movie-card::before {
+      content: "";
+      position: absolute;
+      inset: 0.75rem;
+      border: 1px solid rgba(247, 201, 105, 0.18);
+      border-radius: 6px;
+      pointer-events: none;
+    }
+
+    .poster-inner {
+      display: flex;
+      position: relative;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 29rem;
+      padding: 1.3rem;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(3, 6, 15, 0.22), rgba(3, 6, 15, 0.94)),
+        radial-gradient(circle at 50% 25%, rgba(109, 167, 255, 0.26), transparent 12rem);
+      border-radius: 6px;
+    }
+
+    .poster-inner::before {
+      content: "";
+      position: absolute;
+      inset: 12% 9%;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      box-shadow:
+        0 0 0 0.65rem rgba(255, 255, 255, 0.025),
+        inset 0 0 46px rgba(247, 201, 105, 0.08);
+      transform: perspective(500px) rotateX(9deg);
+    }
+
+    .poster-top {
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+      color: var(--muted);
+      font-size: 0.73rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .poster-title {
+      position: relative;
+      margin: auto 0 1.5rem;
+      text-align: center;
+    }
+
+    .poster-title span {
+      display: block;
+      color: var(--gold);
+      font-size: clamp(3rem, 11vw, 5.6rem);
+      line-height: 0.9;
+      font-weight: 900;
+    }
+
+    .poster-title small {
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .poster-meta {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.6rem;
+      position: relative;
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .poster-meta span {
+      padding-top: 0.55rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin-top: -2rem;
+      padding: 0 1rem;
+      transform: translateY(50%);
+    }
+
+    .stat {
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.09);
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      border-radius: 8px;
+      backdrop-filter: blur(14px);
+    }
+
+    .stat strong {
+      display: block;
+      color: #fff3bd;
+      font-size: 1.25rem;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(22px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes floatIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px) rotate(1.2deg);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) rotate(0);
+      }
+    }
+
+    .section-heading {
+      display: grid;
+      gap: 0.65rem;
+      max-width: 48rem;
+      margin-bottom: 1.8rem;
+    }
+
+    .section-heading h2 {
+      margin-bottom: 0;
+      font-size: clamp(2rem, 4.8vw, 4rem);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .section-heading p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 1.05rem;
+    }
+
+    .story-lab {
+      padding: 5rem 0;
+    }
+
+    .lab-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 0.92fr) minmax(320px, 1.08fr);
+      gap: 1.25rem;
+      align-items: start;
+    }
+
+    .glass-card {
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.045));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(22px);
+    }
+
+    .form-card,
+    .result-card {
+      padding: clamp(1rem, 3vw, 1.5rem);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .field {
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      color: #edf3ff;
+      font-size: 0.85rem;
+      font-weight: 750;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      min-height: 3rem;
+      color: var(--text);
+      background: rgba(2, 5, 13, 0.54);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: var(--radius);
+      padding: 0.78rem 0.86rem;
+      transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+    }
+
+    input:hover,
+    select:hover,
+    textarea:hover {
+      border-color: rgba(247, 201, 105, 0.42);
+    }
+
+    textarea {
+      min-height: 7.5rem;
+      resize: vertical;
+      line-height: 1.55;
+    }
+
+    select {
+      color-scheme: dark;
+    }
+
+    .helper-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      min-height: 1.2rem;
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .counter.warning {
+      color: var(--danger);
+    }
+
+    .form-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 1.25rem;
+    }
+
+    .privacy-note {
+      max-width: 18rem;
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+
+    .result-card {
+      position: sticky;
+      top: 96px;
+      overflow: hidden;
+    }
+
+    .result-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.11);
+    }
+
+    .result-top h3 {
+      margin: 0;
+      font-size: clamp(1.35rem, 3vw, 2rem);
+    }
+
+    .status-pill {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.48rem 0.62rem;
+      color: #fff0bc;
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      background: rgba(247, 201, 105, 0.1);
+      border: 1px solid rgba(247, 201, 105, 0.22);
+      border-radius: 999px;
+    }
+
+    .status-dot {
+      width: 0.48rem;
+      height: 0.48rem;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 14px rgba(247, 201, 105, 0.85);
+    }
+
+    .loading {
+      display: none;
+      align-items: center;
+      gap: 0.72rem;
+      margin-bottom: 1rem;
+      color: var(--muted);
+    }
+
+    .loading.active {
+      display: flex;
+    }
+
+    .loader {
+      width: 1.4rem;
+      height: 1.4rem;
+      border: 2px solid rgba(255, 255, 255, 0.18);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 850ms linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .story-output {
+      min-height: 25rem;
+      color: #eef4ff;
+      line-height: 1.85;
+      white-space: pre-wrap;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.025)),
+        rgba(2, 5, 13, 0.46);
+      border: 1px solid rgba(255, 255, 255, 0.11);
+      border-radius: var(--radius);
+      padding: clamp(1rem, 3vw, 1.25rem);
+    }
+
+    .story-output.empty {
+      display: grid;
+      place-items: center;
+      color: rgba(238, 244, 255, 0.62);
+      text-align: center;
+    }
+
+    .story-output.typing::after {
+      content: "";
+      display: inline-block;
+      width: 0.55rem;
+      height: 1.15rem;
+      margin-left: 0.2rem;
+      vertical-align: -0.15rem;
+      background: var(--gold);
+      animation: blink 800ms steps(2, start) infinite;
+    }
+
+    @keyframes blink {
+      50% {
+        opacity: 0;
+      }
+    }
+
+    .result-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .result-actions .ghost-button {
+      flex: 1 1 10rem;
+      min-height: 2.85rem;
+      padding: 0.78rem 0.9rem;
+    }
+
+    .copied {
+      min-height: 1.2rem;
+      margin: 0.8rem 0 0;
+      color: #bfe6cc;
+      font-size: 0.84rem;
+    }
+
+    .frames {
+      padding: 3.5rem 0 5rem;
+    }
+
+    .frame-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.9rem;
+    }
+
+    .frame {
+      min-height: 9rem;
+      padding: 1rem;
+      overflow: hidden;
+      background:
+        linear-gradient(160deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.035)),
+        radial-gradient(circle at 70% 20%, rgba(247, 201, 105, 0.18), transparent 8rem);
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      border-radius: var(--radius);
+      position: relative;
+    }
+
+    .frame::before,
+    .frame::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 0.7rem;
+      background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.18) 0 0.5rem, transparent 0.5rem 1rem);
+      opacity: 0.4;
+    }
+
+    .frame::before {
+      top: 0;
+    }
+
+    .frame::after {
+      bottom: 0;
+    }
+
+    .frame strong {
+      display: block;
+      margin-top: 1.1rem;
+      color: #fff4c8;
+      font-size: 0.92rem;
+    }
+
+    .frame span {
+      display: block;
+      margin-top: 0.45rem;
+      color: var(--muted);
+      font-size: 0.86rem;
+      line-height: 1.55;
+    }
+
+    .footer {
+      width: min(var(--max-width), calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 1.4rem 0 2.2rem;
+      color: rgba(255, 255, 255, 0.58);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 0.9rem;
+    }
+
+    .toast {
+      position: fixed;
+      right: 1rem;
+      bottom: 1rem;
+      z-index: 20;
+      max-width: min(22rem, calc(100vw - 2rem));
+      padding: 0.85rem 1rem;
+      color: #10200f;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ddffd8, #b7ecc0);
+      border-radius: var(--radius);
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.32);
+      transform: translateY(120%);
+      opacity: 0;
+      transition: transform 220ms ease, opacity 220ms ease;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .lab-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        min-height: auto;
+        padding-top: 8rem;
+      }
+
+      h1 {
+        max-width: 12ch;
+      }
+
+      .movie-card {
+        max-width: 31rem;
+      }
+
+      .result-card {
+        position: relative;
+        top: 0;
+      }
+    }
+
+    @media (max-width: 740px) {
+      .nav {
+        min-height: 64px;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .section {
+        width: min(100% - 1rem, var(--max-width));
+      }
+
+      .hero {
+        min-height: calc(100vh - 2rem);
+        padding: 7rem 0 2rem;
+      }
+
+      .hero-actions .button,
+      .hero-actions .ghost-button,
+      .form-actions .button {
+        width: 100%;
+      }
+
+      .stats-strip,
+      .frame-strip,
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-strip {
+        margin-top: 1rem;
+        padding: 0;
+        transform: none;
+      }
+
+      .movie-card,
+      .poster-inner {
+        min-height: 18rem;
+      }
+
+      .poster-title span {
+        font-size: clamp(2.5rem, 18vw, 4rem);
+      }
+
+      .result-top {
+        flex-direction: column;
+      }
+
+      .status-pill {
+        width: fit-content;
+      }
+
+      .story-lab {
+        padding-top: 3rem;
+      }
+    }
+
+    @media (max-width: 430px) {
+      .brand {
+        font-size: 0.94rem;
+      }
+
+      .brand-mark {
+        width: 2rem;
+        height: 2rem;
+      }
+
+      h1 {
+        font-size: clamp(3rem, 18vw, 4.6rem);
+      }
+
+      .movie-card,
+      .poster-inner {
+        min-height: 16rem;
+      }
+
+      .poster-meta {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <span class="orb one" aria-hidden="true"></span>
+    <span class="orb two" aria-hidden="true"></span>
+
+    <header class="site-header">
+      <nav class="nav" aria-label="Main navigation">
+        <a class="brand" href="#hero" aria-label="Life Movie AI home">
+          <span class="brand-mark">L</span>
+          <span>Life Movie AI</span>
+        </a>
+        <div class="nav-links">
+          <a href="#story-lab">Story Lab</a>
+          <a href="#preview">Preview</a>
+          <a href="#frames">Scenes</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <!-- Hero section -->
+      <section class="section hero" id="hero">
+        <div class="hero-copy">
+          <div class="eyebrow">AI Cinematic Biography</div>
+          <h1>Your Life, <span class="gold-text">Written Like a Movie</span></h1>
+          <p class="hero-subtitle">Turn your memories, dreams, struggles, and victories into a cinematic AI-generated story.</p>
+          <div class="hero-actions">
+            <a class="button" href="#story-lab">Start My Story</a>
+            <a class="ghost-button" href="#preview">View Story Preview</a>
+          </div>
+        </div>
+
+        <aside class="movie-card" aria-label="Life Movie AI poster preview">
+          <div class="poster-inner">
+            <div class="poster-top">
+              <span>Original AI Film</span>
+              <span>Now Writing</span>
+            </div>
+            <div class="poster-title">
+              <small>Based on a true life</small>
+              <span>YOU</span>
+            </div>
+            <div class="poster-meta">
+              <span>Dream</span>
+              <span>Conflict</span>
+              <span>Finale</span>
+            </div>
+          </div>
+          <div class="stats-strip" aria-label="Product highlights">
+            <div class="stat">
+              <strong>7</strong>
+              <span>genres</span>
+            </div>
+            <div class="stat">
+              <strong>3</strong>
+              <span>lengths</span>
+            </div>
+            <div class="stat">
+              <strong>1</strong>
+              <span>life story</span>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <!-- Input form and generated story result -->
+      <section class="section story-lab" id="story-lab">
+        <div class="section-heading">
+          <h2>Direct the opening scene.</h2>
+          <p>Add a few details and Life Movie AI will shape them into a dramatic, movie-style life story with a fake AI generation effect.</p>
+        </div>
+
+        <div class="lab-grid">
+          <form class="glass-card form-card" id="lifeForm">
+            <div class="form-grid">
+              <div class="field">
+                <label for="name">Your name</label>
+                <input id="name" name="name" type="text" placeholder="Alex Morgan" autocomplete="name" required>
+              </div>
+
+              <div class="field">
+                <label for="age">Age</label>
+                <input id="age" name="age" type="number" min="1" max="120" placeholder="29" required>
+              </div>
+
+              <div class="field full">
+                <label for="place">Country or city</label>
+                <input id="place" name="place" type="text" placeholder="Warsaw, Poland" autocomplete="address-level2" required>
+              </div>
+
+              <div class="field full">
+                <label for="dream">Your biggest dream</label>
+                <textarea id="dream" name="dream" maxlength="220" placeholder="To build something meaningful that helps people feel less alone." required></textarea>
+                <div class="helper-row">
+                  <span>Make it specific and personal.</span>
+                  <span class="counter" data-for="dream">0 / 220</span>
+                </div>
+              </div>
+
+              <div class="field full">
+                <label for="challenge">Your biggest challenge</label>
+                <textarea id="challenge" name="challenge" maxlength="220" placeholder="Learning to keep going when doubt gets loud." required></textarea>
+                <div class="helper-row">
+                  <span>The conflict gives the story its heartbeat.</span>
+                  <span class="counter" data-for="challenge">0 / 220</span>
+                </div>
+              </div>
+
+              <div class="field full">
+                <label for="memory">Your happiest memory</label>
+                <textarea id="memory" name="memory" maxlength="220" placeholder="A summer night with friends, laughing until the city lights blurred." required></textarea>
+                <div class="helper-row">
+                  <span>One bright scene is enough.</span>
+                  <span class="counter" data-for="memory">0 / 220</span>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="personality">Your personality type</label>
+                <input id="personality" name="personality" type="text" placeholder="Quiet visionary" required>
+              </div>
+
+              <div class="field">
+                <label for="genre">Movie genre</label>
+                <select id="genre" name="genre" required>
+                  <option>Drama</option>
+                  <option>Romance</option>
+                  <option>Action</option>
+                  <option>Fantasy</option>
+                  <option>Comedy</option>
+                  <option>Horror</option>
+                  <option>Documentary</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="length">Story length</label>
+                <select id="length" name="length" required>
+                  <option>Short</option>
+                  <option selected>Medium</option>
+                  <option>Long</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <p class="privacy-note">Generated locally in your browser. Nothing here is sent anywhere.</p>
+              <button class="button" type="submit">Generate My Life Movie</button>
+            </div>
+          </form>
+
+          <section class="glass-card result-card" id="preview" aria-live="polite">
+            <div class="result-top">
+              <div>
+                <h3>AI Story Result</h3>
+                <p class="privacy-note">Your preview will appear here with a cinematic typing animation.</p>
+              </div>
+              <span class="status-pill"><span class="status-dot"></span> Ready</span>
+            </div>
+
+            <div class="loading" id="loading">
+              <span class="loader" aria-hidden="true"></span>
+              <span>AI is writing your life movie...</span>
+            </div>
+
+            <article class="story-output empty" id="storyOutput">Fill in the form and generate the first scene of your life movie.</article>
+
+            <div class="result-actions">
+              <button class="ghost-button" type="button" id="generateAgain">Generate Again</button>
+              <button class="ghost-button" type="button" id="copyStory">Copy Story</button>
+              <button class="ghost-button" type="button" id="downloadStory">Download as TXT</button>
+            </div>
+            <p class="copied" id="feedback" aria-live="polite"></p>
+          </section>
+        </div>
+      </section>
+
+      <!-- Decorative movie-frame feature strip -->
+      <section class="section frames" id="frames">
+        <div class="section-heading">
+          <h2>Every life has scenes worth keeping.</h2>
+          <p>Life Movie AI turns ordinary details into a cinematic arc: a beginning, a conflict, a glow, and a final frame that still feels unwritten.</p>
+        </div>
+        <div class="frame-strip" aria-label="Story ingredients">
+          <div class="frame">
+            <strong>Opening Shot</strong>
+            <span>Your name, age, and place become the first image of the film.</span>
+          </div>
+          <div class="frame">
+            <strong>The Dream</strong>
+            <span>Your biggest ambition becomes the horizon the camera keeps chasing.</span>
+          </div>
+          <div class="frame">
+            <strong>The Challenge</strong>
+            <span>Your hardest struggle becomes the pressure that reveals your character.</span>
+          </div>
+          <div class="frame">
+            <strong>The Memory</strong>
+            <span>Your happiest moment becomes the warm light that guides the ending.</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Life Movie AI. A cinematic single-page AI story concept.</span>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const form = document.querySelector("#lifeForm");
+    const output = document.querySelector("#storyOutput");
+    const loading = document.querySelector("#loading");
+    const feedback = document.querySelector("#feedback");
+    const toast = document.querySelector("#toast");
+    const generateAgainButton = document.querySelector("#generateAgain");
+    const copyButton = document.querySelector("#copyStory");
+    const downloadButton = document.querySelector("#downloadStory");
+    const counters = document.querySelectorAll(".counter");
+
+    let latestStory = "";
+    let latestData = null;
+    let typingTimer = null;
+
+    // Genre-specific language changes the tone while keeping the user details central.
+    const genreMoods = {
+      Drama: {
+        camera: "Every silence feels enormous, every step carries the weight of a choice.",
+        finale: "the screen fades on courage that was earned, not gifted"
+      },
+      Romance: {
+        camera: "The light lingers on small gestures, turning ordinary rooms into constellations.",
+        finale: "the ending glows with love, tenderness, and the bravery of being seen"
+      },
+      Action: {
+        camera: "The pace is sharp, the cuts are fast, and every setback becomes a countdown.",
+        finale: "the final scene lands like a victory after a long chase through fire"
+      },
+      Fantasy: {
+        camera: "The world bends toward wonder, as if hidden doors have always been waiting.",
+        finale: "the credits rise over a destiny that feels ancient and newly claimed"
+      },
+      Comedy: {
+        camera: "The timing is bright, the chaos is honest, and even the awkward moments sparkle.",
+        finale: "the last laugh arrives with warmth, wisdom, and a perfectly imperfect grin"
+      },
+      Horror: {
+        camera: "The shadows lean close, but the real suspense is whether fear gets the final word.",
+        finale: "the darkness breaks just enough to prove the hero survived the night"
+      },
+      Documentary: {
+        camera: "The camera stays close to the truth, finding poetry in real streets and real scars.",
+        finale: "the closing frame feels honest, human, and still in motion"
+      }
+    };
+
+    const openingShots = [
+      "The first shot opens wide, then slowly finds a face in the crowd.",
+      "A low piano note rises as the camera glides through the city lights.",
+      "The screen is dark for one breath before the title appears in gold.",
+      "Rain, neon, morning sun: the film begins with the feeling of a life about to change."
+    ];
+
+    const turningPoints = [
+      "This is the moment the soundtrack changes.",
+      "This is where the audience realizes the story was never small.",
+      "This is the scene that separates who the hero was from who they are becoming.",
+      "This is the quiet turn before the final act begins."
+    ];
+
+    const closingFrames = [
+      "And beyond the final shot, a new scene is already waiting.",
+      "The credits do not end the story; they simply make room for the sequel.",
+      "The last frame holds for a second longer, bright with everything still possible.",
+      "When the screen fades, the feeling remains: this life is still becoming cinema."
+    ];
+
+    function pick(list) {
+      return list[Math.floor(Math.random() * list.length)];
+    }
+
+    function getFormData() {
+      const data = new FormData(form);
+      return {
+        name: clean(data.get("name")) || "The Hero",
+        age: clean(data.get("age")) || "an unknown age",
+        place: clean(data.get("place")) || "a city full of lights",
+        dream: clean(data.get("dream")) || "to become the person they were meant to be",
+        challenge: clean(data.get("challenge")) || "a challenge they could not ignore",
+        memory: clean(data.get("memory")) || "one perfect memory that still shines",
+        personality: clean(data.get("personality")) || "quietly brave",
+        genre: clean(data.get("genre")) || "Drama",
+        length: clean(data.get("length")) || "Medium"
+      };
+    }
+
+    function clean(value) {
+      return String(value || "").trim().replace(/\s+/g, " ");
+    }
+
+    function buildStory(data) {
+      const mood = genreMoods[data.genre] || genreMoods.Drama;
+      const title = `${data.name.toUpperCase()}: A LIFE IN MOTION`;
+      const opening = `${pick(openingShots)} In ${data.place}, where the night reflects like ink on glass, ${data.name} enters the frame at ${data.age}. The world sees a ${data.personality} soul, but the camera knows there is more: a private fire, a quiet question, a future pressing against the edges of the scene.`;
+      const conflict = `The dream is clear: ${data.dream}. Yet every great ${data.genre.toLowerCase()} needs a storm, and for ${data.name}, that storm is ${data.challenge}. ${mood.camera}`;
+      const memory = `Then the film cuts to light: ${data.memory}. It is not just a memory. It is proof. Proof that joy has visited, that laughter can echo through hard years, that even the most uncertain hero carries a scene worth returning to.`;
+      const ending = `${pick(turningPoints)} By the final act, ${data.name} no longer waits for permission to become legendary. The challenge has not disappeared, but it has changed shape. It is now music under the scene, tension beneath the triumph, the reason the audience leans forward. ${data.name} walks toward the dream with eyes open, heart awake, and ${mood.finale}.`;
+
+      if (data.length === "Short") {
+        return `${title}\n\n${opening}\n\n${conflict}\n\n${ending}`;
+      }
+
+      if (data.length === "Long") {
+        const midpoint = `There are days when the movie nearly stops. The frame narrows. The score softens. ${data.name} wonders if the dream is too distant, if the challenge is too loud, if the brightest chapters belong to someone else. But the answer arrives in motion: one decision, one call, one brave morning at a time.`;
+        const finalLine = pick(closingFrames);
+        return `${title}\n\n${opening}\n\n${conflict}\n\n${midpoint}\n\n${memory}\n\n${ending}\n\n${finalLine}`;
+      }
+
+      return `${title}\n\n${opening}\n\n${conflict}\n\n${memory}\n\n${ending}\n\n${pick(closingFrames)}`;
+    }
+
+    // Creates the fake AI typing effect for the result panel.
+    function typeStory(text) {
+      clearInterval(typingTimer);
+      output.textContent = "";
+      output.classList.remove("empty");
+      output.classList.add("typing");
+
+      let index = 0;
+      const speed = Math.max(8, Math.min(22, 1800 / text.length));
+
+      typingTimer = setInterval(() => {
+        output.textContent += text.charAt(index);
+        index += 1;
+
+        if (index >= text.length) {
+          clearInterval(typingTimer);
+          output.classList.remove("typing");
+        }
+      }, speed);
+    }
+
+    function generateStory(data) {
+      latestData = data;
+      latestStory = buildStory(data);
+      feedback.textContent = "";
+      output.classList.remove("typing");
+      output.classList.add("empty");
+      output.textContent = "";
+      loading.classList.add("active");
+      output.scrollIntoView({ behavior: "smooth", block: "center" });
+
+      window.setTimeout(() => {
+        loading.classList.remove("active");
+        typeStory(latestStory);
+      }, 950);
+    }
+
+    function updateCounter(counter) {
+      const target = document.querySelector(`#${counter.dataset.for}`);
+      const max = Number(target.getAttribute("maxlength")) || 0;
+      const length = target.value.length;
+      counter.textContent = `${length} / ${max}`;
+      counter.classList.toggle("warning", max - length <= 20);
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      window.setTimeout(() => toast.classList.remove("show"), 2300);
+    }
+
+    async function copyStory() {
+      if (!latestStory) {
+        showToast("Generate a story first.");
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(latestStory);
+        feedback.textContent = "Story copied to clipboard.";
+        showToast("Story copied.");
+      } catch (error) {
+        feedback.textContent = "Copy failed. Select the story text and copy it manually.";
+      }
+    }
+
+    function downloadStory() {
+      if (!latestStory) {
+        showToast("Generate a story first.");
+        return;
+      }
+
+      const safeName = (latestData?.name || "life-movie").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+      const blob = new Blob([latestStory], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${safeName || "life-movie"}-story.txt`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      feedback.textContent = "TXT download created.";
+      showToast("Download ready.");
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      generateStory(getFormData());
+    });
+
+    generateAgainButton.addEventListener("click", () => {
+      if (!latestData && !form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      generateStory(latestData || getFormData());
+    });
+
+    copyButton.addEventListener("click", copyStory);
+    downloadButton.addEventListener("click", downloadStory);
+
+    counters.forEach((counter) => {
+      const target = document.querySelector(`#${counter.dataset.for}`);
+      target.addEventListener("input", () => updateCounter(counter));
+      updateCounter(counter);
+    });
+  </script>
+</body>
+</html>
