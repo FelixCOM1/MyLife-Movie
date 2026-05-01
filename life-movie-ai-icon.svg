@@ -1,0 +1,22 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gold" x1="82" y1="54" x2="430" y2="458" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff4c6"/>
+      <stop offset="0.55" stop-color="#f7c969"/>
+      <stop offset="1" stop-color="#996318"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="116" y1="152" x2="396" y2="344" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#152b5b"/>
+      <stop offset="1" stop-color="#05070d"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="#05070d"/>
+  <circle cx="384" cy="128" r="112" fill="#102f66" opacity="0.7"/>
+  <circle cx="108" cy="400" r="152" fill="#f7c969" opacity="0.12"/>
+  <rect x="64" y="108" width="384" height="288" rx="64" fill="#0b1324" stroke="url(#gold)" stroke-width="16"/>
+  <rect x="108" y="156" width="296" height="192" rx="32" fill="url(#panel)"/>
+  <path d="M224 196L316 256L224 316V196Z" fill="#f7c969"/>
+  <path d="M120 108V396M392 108V396" stroke="#f7c969" stroke-width="20" opacity="0.75"/>
+  <path d="M156 76L172 116L212 132L172 148L156 188L140 148L100 132L140 116L156 76Z" fill="#fff4c6"/>
+  <path d="M160 424H352" stroke="#fff4c6" stroke-width="20" stroke-linecap="round" opacity="0.55"/>
+</svg>
